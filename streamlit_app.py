@@ -32,7 +32,6 @@ st.markdown("""
 .metric-call {
     background-color: #90ee90;
     color: black;
-    margin-right: 10px;
     border-radius: 10px;
 }
 
@@ -61,7 +60,7 @@ st.markdown("""
 # Set the title that appears at the top of the page.
 st.title("Black-Scholes Options Pricing Model")
 st.write("`Created by:`")
-linkedin_url = "www.linkedin.com/in/haowenruiprofile"
+linkedin_url = "https://www.linkedin.com/in/haowenruiprofile/"
 st.markdown(f'<a href="{linkedin_url}" target="_blank" style="text-decoration: none; color: inherit;"><img src="https://cdn-icons-png.flaticon.com/512/174/174857.png" width="25" height="25" style="vertical-align: middle; margin-right: 10px;">`Anson (Hao Wen) Rui`</a>', unsafe_allow_html=True)
 col1, col2, col3 = st.columns(3)
 with col1:
