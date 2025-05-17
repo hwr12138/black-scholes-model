@@ -118,7 +118,7 @@ col1, col2 = st.columns(2)
 with col1:
     spot_min = st.number_input('Min Spot Price', min_value=0.01, value=current_price*0.8, step=0.01)
     spot_max = st.number_input('Max Spot Price', min_value=0.01, value=current_price*1.2, step=0.01)
-    purchase_price = st.number_input('Options Purchase Price', value=15)
+    purchase_price = st.number_input('Options Purchase Price', value=15.00)
 
 with col2:
     vol_min = st.slider('Min Volatility for Heatmap', min_value=0.01, max_value=1.0, value=volatility*0.5, step=0.01)
