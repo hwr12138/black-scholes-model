@@ -129,16 +129,16 @@ vol_range = np.linspace(vol_min, vol_max, 10)
 
 # Interactive Sliders and Heatmaps for Call and Put Options
 col1, col2 = st.columns([1,1], gap="small")
-heatmap_fig_call, heatmap_fig_put, heatmap_fig_call_profit, heatmap_fig_put_profit = bs.BlackScholes.plot_heatmap(strike_price, time_to_maturity, interest_rate, spot_range, vol_range, purchase_price)
+heatmap_fig_call, heatmap_fig_put, heatmap_fig_call_pnl, heatmap_fig_put_pnl = bs.BlackScholes.plot_heatmap(strike_price, time_to_maturity, interest_rate, spot_range, vol_range, purchase_price)
 
 with col1:
     st.subheader("Call Price Heatmap")
     st.pyplot(heatmap_fig_call)
-    st.subheader("Call Profit Heatmap")
-    st.pyplot(heatmap_fig_call_profit)
+    st.subheader("Call PnL Heatmap")
+    st.pyplot(heatmap_fig_call_pnl)
 
 with col2:
     st.subheader("Put Price Heatmap")
     st.pyplot(heatmap_fig_put)
-    st.subheader("Put Profit Heatmap")
-    st.pyplot(heatmap_fig_put_profit)
+    st.subheader("Put PnL Heatmap")
+    st.pyplot(heatmap_fig_put_pnl)
