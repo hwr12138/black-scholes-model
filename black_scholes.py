@@ -49,10 +49,14 @@ class BlackScholes:
                 self.interest_rate * self.strike_price * 
                 exp(-self.interest_rate * self.time_to_maturity) * norm.cdf(-d2, 0, 1))
         
-        self.vega = self.current_price * norm.pdf(d1, 0, 1) * sqrt(time_to_maturity)
+        self.vega = self.current_price * norm.pdf(d1, 0, 1) * sqrt(self.time_to_maturity)
 
-        self.call_rho = 
-        self.put_rho = 
+        self.call_rho = (self.strike_price * self.time_to_maturity * 
+                         exp(-self.interest_rate * self.time_to_maturity) * 
+                         norm.cdf(d2, 0, 1))
+        self.put_rho = -(self.strike_price * self.time_to_maturity * 
+                        exp(-self.interest_rate * self.time_to_maturity) * 
+                        norm.cdf(-d2, 0, 1))
     
     # Heat Map
     def plot_heatmap(self, spot_range, vol_range, strike_price):
