@@ -1,151 +1,141 @@
 import streamlit as st
 import pandas as pd
-import math
-from pathlib import Path
+import black_scholes as bs
+import numpy as np
+
 
 # Set the title and favicon that appear in the Browser's tab bar.
 st.set_page_config(
-    page_title='GDP dashboard',
+    page_title='Black-Scholes Model',
     page_icon=':earth_americas:', # This is an emoji shortcode. Could be a URL too.
+    layout="wide",
+    initial_sidebar_state="expanded"
 )
 
 # -----------------------------------------------------------------------------
 # Declare some useful functions.
 
-@st.cache_data
-def get_gdp_data():
-    """Grab GDP data from a CSV file.
+# Pull Fed interest rate
 
-    This uses caching to avoid having to read the file every time. If we were
-    reading from an HTTP endpoint instead of a file, it's a good idea to set
-    a maximum age to the cache with the TTL argument: @st.cache_data(ttl='1d')
-    """
+# Custom CSS to inject into Streamlit
+st.markdown("""
+<style>
+/* Adjust the size and alignment of the CALL and PUT value containers */
+.metric-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 8px; /* Adjust the padding to control height */
+    width: auto; /* Auto width for responsiveness, or set a fixed width if necessary */
+    margin: 0 auto; /* Center the container */
+}
 
-    # Instead of a CSV on disk, you could read from an HTTP endpoint here too.
-    DATA_FILENAME = Path(__file__).parent/'data/gdp_data.csv'
-    raw_gdp_df = pd.read_csv(DATA_FILENAME)
+/* Custom classes for CALL and PUT values */
+.metric-call {
+    background-color: #90ee90; /* Light green background */
+    color: black; /* Black font color */
+    margin-right: 10px; /* Spacing between CALL and PUT */
+    border-radius: 10px; /* Rounded corners */
+}
 
-    MIN_YEAR = 1960
-    MAX_YEAR = 2022
+.metric-put {
+    background-color: #ffcccb; /* Light red background */
+    color: black; /* Black font color */
+    border-radius: 10px; /* Rounded corners */
+}
 
-    # The data above has columns like:
-    # - Country Name
-    # - Country Code
-    # - [Stuff I don't care about]
-    # - GDP for 1960
-    # - GDP for 1961
-    # - GDP for 1962
-    # - ...
-    # - GDP for 2022
-    #
-    # ...but I want this instead:
-    # - Country Name
-    # - Country Code
-    # - Year
-    # - GDP
-    #
-    # So let's pivot all those year-columns into two: Year and GDP
-    gdp_df = raw_gdp_df.melt(
-        ['Country Code'],
-        [str(x) for x in range(MIN_YEAR, MAX_YEAR + 1)],
-        'Year',
-        'GDP',
-    )
+/* Style for the value text */
+.metric-value {
+    font-size: 1.5rem; /* Adjust font size */
+    font-weight: bold;
+    margin: 0; /* Remove default margins */
+}
 
-    # Convert years from string to integers
-    gdp_df['Year'] = pd.to_numeric(gdp_df['Year'])
+/* Style for the label text */
+.metric-label {
+    font-size: 1rem; /* Adjust font size */
+    margin-bottom: 4px; /* Spacing between label and value */
+}
 
-    return gdp_df
-
-gdp_df = get_gdp_data()
+</style>
+""", unsafe_allow_html=True)
 
 # -----------------------------------------------------------------------------
 # Draw the actual page
 
+# Sidebar for User Inputs
+with st.sidebar:
+    st.title("Black-Scholes Options Pricing Model")
+    st.write("`Created by:`")
+    linkedin_url = "www.linkedin.com/in/haowenruiprofile"
+    st.markdown(f'<a href="{linkedin_url}" target="_blank" style="text-decoration: none; color: inherit;"><img src="https://cdn-icons-png.flaticon.com/512/174/174857.png" width="25" height="25" style="vertical-align: middle; margin-right: 10px;">`Anson (Hao Wen) Rui`</a>', unsafe_allow_html=True)
+
+    current_price = st.number_input("Current Asset Price", value=100.0)
+    strike_price = st.number_input("Strike Price", value=90.0)
+    time_to_maturity = st.number_input("Time to Maturity (Years)", value=1.0)
+    volatility = st.number_input("Volatility (σ)", value=0.2)
+    interest_rate = st.number_input("Risk-Free Interest Rate", value=0.05)
+
+    st.markdown("---")
+    calculate_btn = st.button('Heatmap Parameters')
+    spot_min = st.number_input('Min Spot Price', min_value=0.01, value=current_price*0.8, step=0.01)
+    spot_max = st.number_input('Max Spot Price', min_value=0.01, value=current_price*1.2, step=0.01)
+    vol_min = st.slider('Min Volatility for Heatmap', min_value=0.01, max_value=1.0, value=volatility*0.5, step=0.01)
+    vol_max = st.slider('Max Volatility for Heatmap', min_value=0.01, max_value=1.0, value=volatility*1.5, step=0.01)
+    
+    spot_range = np.linspace(spot_min, spot_max, 10)
+    vol_range = np.linspace(vol_min, vol_max, 10)
+
 # Set the title that appears at the top of the page.
 '''
-# :earth_americas: GDP dashboard
-
-Browse GDP data from the [World Bank Open Data](https://data.worldbank.org/) website. As you'll
-notice, the data only goes to 2022 right now, and datapoints for certain years are often missing.
-But it's otherwise a great (and did I mention _free_?) source of data.
+# Black Scholes Options Pricing Model
 '''
 
 # Add some spacing
 ''
 ''
 
-min_value = gdp_df['Year'].min()
-max_value = gdp_df['Year'].max()
+# Calculate Call and Put values
+bs_model = bs.BlackScholes(time_to_maturity, strike_price, current_price, volatility, interest_rate)
+call_price, put_price = bs_model.compute()
 
-from_year, to_year = st.slider(
-    'Which years are you interested in?',
-    min_value=min_value,
-    max_value=max_value,
-    value=[min_value, max_value])
+# Display Call and Put Values in colored tables
+col1, col2 = st.columns([1,1], gap="small")
 
-countries = gdp_df['Country Code'].unique()
+with col1:
+    # Using the custom class for CALL value
+    st.markdown(f"""
+        <div class="metric-container metric-call">
+            <div>
+                <div class="metric-label">CALL Value</div>
+                <div class="metric-value">${call_price:.2f}</div>
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
 
-if not len(countries):
-    st.warning("Select at least one country")
+with col2:
+    # Using the custom class for PUT value
+    st.markdown(f"""
+        <div class="metric-container metric-put">
+            <div>
+                <div class="metric-label">PUT Value</div>
+                <div class="metric-value">${put_price:.2f}</div>
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
 
-selected_countries = st.multiselect(
-    'Which countries would you like to view?',
-    countries,
-    ['DEU', 'FRA', 'GBR', 'BRA', 'MEX', 'JPN'])
+st.markdown("")
+st.title("Options Price - Interactive Heatmap")
 
-''
-''
-''
+# Interactive Sliders and Heatmaps for Call and Put Options
+col1, col2 = st.columns([1,1], gap="small")
 
-# Filter the data
-filtered_gdp_df = gdp_df[
-    (gdp_df['Country Code'].isin(selected_countries))
-    & (gdp_df['Year'] <= to_year)
-    & (from_year <= gdp_df['Year'])
-]
+with col1:
+    st.subheader("Call Price Heatmap")
+    heatmap_fig_call, _ = bs_model.plot_heatmap(spot_range, vol_range, strike_price)
+    st.pyplot(heatmap_fig_call)
 
-st.header('GDP over time', divider='gray')
-
-''
-
-st.line_chart(
-    filtered_gdp_df,
-    x='Year',
-    y='GDP',
-    color='Country Code',
-)
-
-''
-''
-
-
-first_year = gdp_df[gdp_df['Year'] == from_year]
-last_year = gdp_df[gdp_df['Year'] == to_year]
-
-st.header(f'GDP in {to_year}', divider='gray')
-
-''
-
-cols = st.columns(4)
-
-for i, country in enumerate(selected_countries):
-    col = cols[i % len(cols)]
-
-    with col:
-        first_gdp = first_year[first_year['Country Code'] == country]['GDP'].iat[0] / 1000000000
-        last_gdp = last_year[last_year['Country Code'] == country]['GDP'].iat[0] / 1000000000
-
-        if math.isnan(first_gdp):
-            growth = 'n/a'
-            delta_color = 'off'
-        else:
-            growth = f'{last_gdp / first_gdp:,.2f}x'
-            delta_color = 'normal'
-
-        st.metric(
-            label=f'{country} GDP',
-            value=f'{last_gdp:,.0f}B',
-            delta=growth,
-            delta_color=delta_color
-        )
+with col2:
+    st.subheader("Put Price Heatmap")
+    _, heatmap_fig_put = bs_model.plot_heatmap(spot_range, vol_range, strike_price)
+    st.pyplot(heatmap_fig_put)
