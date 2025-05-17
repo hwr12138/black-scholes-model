@@ -119,6 +119,7 @@ col1, col2 = st.columns(2)
 with col1:
     spot_min = st.number_input('Min Spot Price', min_value=0.01, value=current_price*0.8, step=0.01)
     spot_max = st.number_input('Max Spot Price', min_value=0.01, value=current_price*1.2, step=0.01)
+    purchase_price = st.number_input('Options Purchase Price', value=15)
 
 with col2:
     vol_min = st.slider('Min Volatility for Heatmap', min_value=0.01, max_value=1.0, value=volatility*0.5, step=0.01)
@@ -129,12 +130,16 @@ vol_range = np.linspace(vol_min, vol_max, 10)
 
 # Interactive Sliders and Heatmaps for Call and Put Options
 col1, col2 = st.columns([1,1], gap="small")
-heatmap_fig_call, heatmap_fig_put = bs.BlackScholes.plot_heatmap(strike_price, time_to_maturity, interest_rate, spot_range, vol_range)
+heatmap_fig_call, heatmap_fig_put, heatmap_fig_call_profit, heatmap_fig_put_profit = bs.BlackScholes.plot_heatmap(strike_price, time_to_maturity, interest_rate, spot_range, vol_range, purchase_price)
 
 with col1:
     st.subheader("Call Price Heatmap")
     st.pyplot(heatmap_fig_call)
+    st.subheader("Call Profit Heatmap")
+    st.pyplot(heatmap_fig_call_profit)
 
 with col2:
     st.subheader("Put Price Heatmap")
     st.pyplot(heatmap_fig_put)
+    st.subheader("Put Profit Heatmap")
+    st.pyplot(heatmap_fig_put_profit)

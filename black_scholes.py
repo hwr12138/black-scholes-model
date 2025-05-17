@@ -42,9 +42,11 @@ class BlackScholes:
         self.put_rho = -(self.K * self.T * exp(-self.r * self.T) * norm.cdf(-self.d2, 0, 1))
 
     @staticmethod
-    def plot_heatmap(K, T, r, spot_range, vol_range):
+    def plot_heatmap(K, T, r, spot_range, vol_range, purchase_price):
         call_prices = np.zeros((len(vol_range), len(spot_range)))
+        call_profit = np.zeros((len(vol_range), len(spot_range)))
         put_prices = np.zeros((len(vol_range), len(spot_range)))
+        put_profit = np.zeros((len(vol_range), len(spot_range)))
         
         for i, vol in enumerate(vol_range):
             for j, spot in enumerate(spot_range):
@@ -57,7 +59,9 @@ class BlackScholes:
                 )
                 bs_temp.compute_price()
                 call_prices[i, j] = bs_temp.call_price
+                call_profit[i, j] = bs_temp.call_price - purchase_price
                 put_prices[i, j] = bs_temp.put_price
+                put_profit[i, j] = bs_temp.put_price - purchase_price
         
         # Plotting Call Price Heatmap
         fig_call, ax_call = plt.subplots(figsize=(10, 8))
@@ -72,8 +76,22 @@ class BlackScholes:
         ax_put.set_title('PUT')
         ax_put.set_xlabel('Spot Price')
         ax_put.set_ylabel('Volatility')
-        
-        return fig_call, fig_put
+
+        # Plotting Call Profit Heatmap
+        fig_call_profit, ax_call_profit = plt.subplots(figsize=(10, 8))
+        sns.heatmap(call_profit, xticklabels=np.round(spot_range, 2), yticklabels=np.round(vol_range, 2), annot=True, fmt=".2f", cmap="RdYlGn", ax=ax_call_profit)
+        ax_call_profit.set_title('CALL')
+        ax_call_profit.set_xlabel('Spot Price')
+        ax_call_profit.set_ylabel('Volatility')
+
+        # Plotting Put Profit Heatmap
+        fig_put_profit, ax_put_profit = plt.subplots(figsize=(10, 8))
+        sns.heatmap(put_profit, xticklabels=np.round(spot_range, 2), yticklabels=np.round(vol_range, 2), annot=True, fmt=".2f", cmap="RdYlGn", ax=ax_put_profit)
+        ax_put_profit.set_title('PUT')
+        ax_put_profit.set_xlabel('Spot Price')
+        ax_put_profit.set_ylabel('Volatility')
+
+        return fig_call, fig_put, fig_call_profit, fig_put_profit
 
 
 if __name__ == "__main__":
