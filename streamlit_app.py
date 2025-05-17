@@ -69,47 +69,45 @@ with col1:
     volatility = st.number_input("Volatility (σ)", value=0.2)
 with col2:
     strike_price = st.number_input("Strike Price", value=90.0)
-    interest_rate = st.number_input("Risk-Free Interest Rate", value=0.05)
+    interest_rate = st.number_input("Risk-Free Interest Rate (%)", value=5.00)
 with col3:
-    time_to_maturity = st.number_input("Time to Maturity (Years)", value=1.0)
+    time_to_maturity = st.number_input("Time to Maturity (Days)", value=365)
 
 ''
 ''
 
 # Calculate Call and Put values
 bs_model = bs.BlackScholes(time_to_maturity, strike_price, current_price, volatility, interest_rate)
-bs_model.compute()
-call_price, put_price = bs_model.call_price, bs_model.put_price
+bs_model.compute_price()
+bs_model.compute_greeks()
 
 # Display Call and Put Values in colored tables
 col1, col2 = st.columns([1,1], gap="small")
-
 with col1:
     # Using the custom class for CALL value
     st.markdown(f"""
         <div class="metric-container metric-call">
             <div>
-                <div class="metric-value">CALL Value: ${call_price:.2f}</div>
-                <div class="metric-greeks">Delta (Δ): {bs_model.call_delta}</div>
-                <div class="metric-greeks">Gamma (Γ): {bs_model.gamma}</div>
-                <div class="metric-greeks">Theta (Θ): {bs_model.call_theta}</div>
-                <div class="metric-greeks">Vega (ν): {bs_model.vega}</div>
-                <div class="metric-greeks">Rho (ρ): {bs_model.call_rho}</div>
+                <div class="metric-value">CALL Value: ${bs_model.call_price:.2f}</div>
+                <div class="metric-greeks">Delta (Δ): {bs_model.call_delta:.8f}</div>
+                <div class="metric-greeks">Gamma (Γ): {bs_model.gamma:.8f}</div>
+                <div class="metric-greeks">Theta (Θ): {bs_model.call_theta:.8f}</div>
+                <div class="metric-greeks">Vega (ν): {bs_model.vega:.8f}</div>
+                <div class="metric-greeks">Rho (ρ): {bs_model.call_rho:.8f}</div>
             </div>
         </div>
     """, unsafe_allow_html=True)
-
 with col2:
     # Using the custom class for PUT value
     st.markdown(f"""
         <div class="metric-container metric-put">
             <div>
-                <div class="metric-value">PUT Value: ${put_price:.2f}</div>
-                <div class="metric-greeks">Delta (Δ): {bs_model.put_delta}</div>
-                <div class="metric-greeks">Gamma (Γ): {bs_model.gamma}</div>
-                <div class="metric-greeks">Theta (Θ): {bs_model.put_theta}</div>
-                <div class="metric-greeks">Vega (ν): {bs_model.vega}</div>
-                <div class="metric-greeks">Rho (ρ): {bs_model.put_rho}</div>
+                <div class="metric-value">PUT Value: ${bs_model.put_price:.2f}</div>
+                <div class="metric-greeks">Delta (Δ): {bs_model.put_delta:.8f}</div>
+                <div class="metric-greeks">Gamma (Γ): {bs_model.gamma:.8f}</div>
+                <div class="metric-greeks">Theta (Θ): {bs_model.put_theta:.8f}</div>
+                <div class="metric-greeks">Vega (ν): {bs_model.vega:.8f}</div>
+                <div class="metric-greeks">Rho (ρ): {bs_model.put_rho:.8f}</div>
             </div>
         </div>
     """, unsafe_allow_html=True)
@@ -131,13 +129,12 @@ vol_range = np.linspace(vol_min, vol_max, 10)
 
 # Interactive Sliders and Heatmaps for Call and Put Options
 col1, col2 = st.columns([1,1], gap="small")
+heatmap_fig_call, heatmap_fig_put = bs.BlackScholes.plot_heatmap(strike_price, time_to_maturity, interest_rate, spot_range, vol_range)
 
 with col1:
     st.subheader("Call Price Heatmap")
-    heatmap_fig_call, _ = bs_model.plot_heatmap(spot_range, vol_range, strike_price)
     st.pyplot(heatmap_fig_call)
 
 with col2:
     st.subheader("Put Price Heatmap")
-    _, heatmap_fig_put = bs_model.plot_heatmap(spot_range, vol_range, strike_price)
     st.pyplot(heatmap_fig_put)
