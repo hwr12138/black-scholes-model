@@ -21,30 +21,38 @@ class BlackScholes:
 
     def compute(self):
         d1 = (log(self.current_price / self.strike_price) + 
-                (self.interest_rate + 0.5 * self.volatility ** 2) * self.time_to_maturity
+                (self.interest_rate + (self.volatility ** 2) / 2) * self.time_to_maturity
             ) / (self.volatility * sqrt(self.time_to_maturity))
         d2 = d1 - self.volatility * sqrt(self.time_to_maturity)
 
-        call_price = self.current_price * norm.cdf(d1) - (
-            self.strike_price * exp(-(self.interest_rate * self.time_to_maturity)) * norm.cdf(d2)
-        )
-        put_price = (
-            self.strike_price * exp(-(self.interest_rate * self.time_to_maturity)) * norm.cdf(-d2)
-        ) - self.current_price * norm.cdf(-d1)
-
         # Call and Put Prices
-        self.call_price = call_price
-        self.put_price = put_price
+        self.call_price = self.current_price * norm.cdf(d1, 0, 1) - (
+            self.strike_price * exp(-(self.interest_rate * self.time_to_maturity)) * 
+            norm.cdf(d2, 0, 1))
+        self.put_price = (self.strike_price * 
+                          exp(-(self.interest_rate * self.time_to_maturity)) * 
+                          norm.cdf(-d2, 0, 1)) - self.current_price * norm.cdf(-d1, 0, 1)
 
         # GREEKS
-        self.call_delta = norm.cdf(d1)
-        self.put_delta = 1 - norm.cdf(d1)
+        self.call_delta = norm.cdf(d1, 0, 1)
+        self.put_delta = -norm.cdf(-d1, 0, 1)
 
-        self.call_gamma = norm.pdf(d1) / (
-            self.strike_price * self.volatility * sqrt(self.time_to_maturity))
-        self.put_gamma = self.call_gamma
+        self.gamma = norm.pdf(d1, 0, 1) / (
+            self.current_price * self.volatility * sqrt(self.time_to_maturity))
 
-        return call_price, put_price
+        self.call_theta = (-self.current_price * norm.pdf(d1, 0, 1) * self.volatility) / (
+            2 * sqrt(self.time_to_maturity)) - (
+                self.interest_rate * self.strike_price * 
+                exp(-self.interest_rate * self.time_to_maturity) * norm.cdf(d2, 0, 1))
+        self.put_theta = (-self.current_price * norm.pdf(d1, 0, 1) * self.volatility) / (
+            2 * sqrt(self.time_to_maturity)) + (
+                self.interest_rate * self.strike_price * 
+                exp(-self.interest_rate * self.time_to_maturity) * norm.cdf(-d2, 0, 1))
+        
+        self.vega = self.current_price * norm.pdf(d1, 0, 1) * sqrt(time_to_maturity)
+
+        self.call_rho = 
+        self.put_rho = 
     
     # Heat Map
     def plot_heatmap(self, spot_range, vol_range, strike_price):

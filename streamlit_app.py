@@ -20,84 +20,66 @@ st.set_page_config(
 # Custom CSS to inject into Streamlit
 st.markdown("""
 <style>
-/* Adjust the size and alignment of the CALL and PUT value containers */
 .metric-container {
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 8px; /* Adjust the padding to control height */
-    width: auto; /* Auto width for responsiveness, or set a fixed width if necessary */
-    margin: 0 auto; /* Center the container */
+    padding: 8px;
+    width: auto;
+    margin: 0 auto;
 }
 
-/* Custom classes for CALL and PUT values */
 .metric-call {
-    background-color: #90ee90; /* Light green background */
-    color: black; /* Black font color */
-    margin-right: 10px; /* Spacing between CALL and PUT */
-    border-radius: 10px; /* Rounded corners */
+    background-color: #90ee90;
+    color: black;
+    margin-right: 10px;
+    border-radius: 10px;
 }
 
 .metric-put {
-    background-color: #ffcccb; /* Light red background */
-    color: black; /* Black font color */
-    border-radius: 10px; /* Rounded corners */
+    background-color: #ffcccb;
+    color: black;
+    border-radius: 10px;
 }
 
-/* Style for the value text */
 .metric-value {
-    font-size: 1.5rem; /* Adjust font size */
+    font-size: 1.5rem;
     font-weight: bold;
-    margin: 0; /* Remove default margins */
+    margin: 0;
 }
 
-/* Style for the label text */
-.metric-label {
-    font-size: 1rem; /* Adjust font size */
-    margin-bottom: 4px; /* Spacing between label and value */
+.metric-greeks {
+    font-size: 1rem;
+    margin: 0;
 }
-
 </style>
 """, unsafe_allow_html=True)
 
 # -----------------------------------------------------------------------------
 # Draw the actual page
 
-# Sidebar for User Inputs
-with st.sidebar:
-    st.title("Black-Scholes Options Pricing Model")
-    st.write("`Created by:`")
-    linkedin_url = "www.linkedin.com/in/haowenruiprofile"
-    st.markdown(f'<a href="{linkedin_url}" target="_blank" style="text-decoration: none; color: inherit;"><img src="https://cdn-icons-png.flaticon.com/512/174/174857.png" width="25" height="25" style="vertical-align: middle; margin-right: 10px;">`Anson (Hao Wen) Rui`</a>', unsafe_allow_html=True)
-
-    current_price = st.number_input("Current Asset Price", value=100.0)
-    strike_price = st.number_input("Strike Price", value=90.0)
-    time_to_maturity = st.number_input("Time to Maturity (Years)", value=1.0)
-    volatility = st.number_input("Volatility (σ)", value=0.2)
-    interest_rate = st.number_input("Risk-Free Interest Rate", value=0.05)
-
-    st.markdown("---")
-    calculate_btn = st.button('Heatmap Parameters')
-    spot_min = st.number_input('Min Spot Price', min_value=0.01, value=current_price*0.8, step=0.01)
-    spot_max = st.number_input('Max Spot Price', min_value=0.01, value=current_price*1.2, step=0.01)
-    vol_min = st.slider('Min Volatility for Heatmap', min_value=0.01, max_value=1.0, value=volatility*0.5, step=0.01)
-    vol_max = st.slider('Max Volatility for Heatmap', min_value=0.01, max_value=1.0, value=volatility*1.5, step=0.01)
-    
-    spot_range = np.linspace(spot_min, spot_max, 10)
-    vol_range = np.linspace(vol_min, vol_max, 10)
-
 # Set the title that appears at the top of the page.
-'''
-# Black Scholes Options Pricing Model
-'''
+st.title("Black-Scholes Options Pricing Model")
+st.write("`Created by:`")
+linkedin_url = "www.linkedin.com/in/haowenruiprofile"
+st.markdown(f'<a href="{linkedin_url}" target="_blank" style="text-decoration: none; color: inherit;"><img src="https://cdn-icons-png.flaticon.com/512/174/174857.png" width="25" height="25" style="vertical-align: middle; margin-right: 10px;">`Anson (Hao Wen) Rui`</a>', unsafe_allow_html=True)
+col1, col2, col3 = st.columns(3)
+with col1:
+    current_price = st.number_input("Current Asset Price", value=100.0)
+    volatility = st.number_input("Volatility (σ)", value=0.2)
+with col2:
+    strike_price = st.number_input("Strike Price", value=90.0)
+    interest_rate = st.number_input("Risk-Free Interest Rate", value=0.05)
+with col3:
+    time_to_maturity = st.number_input("Time to Maturity (Years)", value=1.0)
 
-# Add some spacing
 ''
 ''
 
 # Calculate Call and Put values
 bs_model = bs.BlackScholes(time_to_maturity, strike_price, current_price, volatility, interest_rate)
-call_price, put_price = bs_model.compute()
+bs_model.compute()
+call_price, put_price = bs_model.call_price, bs_model.put_price
 
 # Display Call and Put Values in colored tables
 col1, col2 = st.columns([1,1], gap="small")
@@ -107,8 +89,12 @@ with col1:
     st.markdown(f"""
         <div class="metric-container metric-call">
             <div>
-                <div class="metric-label">CALL Value</div>
-                <div class="metric-value">${call_price:.2f}</div>
+                <div class="metric-value">CALL Value: ${call_price:.2f}</div>
+                <div class="metric-greeks">Delta (Δ): {bs_model.call_delta}</div>
+                <div class="metric-greeks">Gamma (Γ): {bs_model.gamma}</div>
+                <div class="metric-greeks">Theta (Θ): {bs_model.call_theta}</div>
+                <div class="metric-greeks">Vega (ν): {bs_model.vega}</div>
+                <div class="metric-greeks">Rho (ρ): {bs_model.call_rho}</div>
             </div>
         </div>
     """, unsafe_allow_html=True)
@@ -118,14 +104,30 @@ with col2:
     st.markdown(f"""
         <div class="metric-container metric-put">
             <div>
-                <div class="metric-label">PUT Value</div>
-                <div class="metric-value">${put_price:.2f}</div>
+                <div class="metric-value">PUT Value: ${put_price:.2f}</div>
+                <div class="metric-greeks">Delta (Δ): {bs_model.put_delta}</div>
+                <div class="metric-greeks">Gamma (Γ): {bs_model.gamma}</div>
+                <div class="metric-greeks">Theta (Θ): {bs_model.put_theta}</div>
+                <div class="metric-greeks">Vega (ν): {bs_model.vega}</div>
+                <div class="metric-greeks">Rho (ρ): {bs_model.put_rho}</div>
             </div>
         </div>
     """, unsafe_allow_html=True)
 
 st.markdown("")
+st.markdown("---")
 st.title("Options Price - Interactive Heatmap")
+col1, col2 = st.columns(2)
+with col1:
+    spot_min = st.number_input('Min Spot Price', min_value=0.01, value=current_price*0.8, step=0.01)
+    spot_max = st.number_input('Max Spot Price', min_value=0.01, value=current_price*1.2, step=0.01)
+
+with col2:
+    vol_min = st.slider('Min Volatility for Heatmap', min_value=0.01, max_value=1.0, value=volatility*0.5, step=0.01)
+    vol_max = st.slider('Max Volatility for Heatmap', min_value=0.01, max_value=1.0, value=volatility*1.5, step=0.01)
+
+spot_range = np.linspace(spot_min, spot_max, 10)
+vol_range = np.linspace(vol_min, vol_max, 10)
 
 # Interactive Sliders and Heatmaps for Call and Put Options
 col1, col2 = st.columns([1,1], gap="small")
