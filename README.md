@@ -2,7 +2,7 @@
 
 A simple Streamlit app showing the Black-Scholes model
 
-[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://my-black-scholes-model.streamlit.app/)
+[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://my-black-scholes.streamlit.app/)
 
 ### How to run it on your own machine
 
